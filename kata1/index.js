@@ -39,6 +39,7 @@ Nos dan un número entre el 1 y 100, y tenemos que devolver por orden lo siguien
 */
 
 function fooBarQuix ( numero ) {
+    let strNumero, element;
     let strReturn = "";
 
     if (typeof numero != "number"  || numero < 1 || numero > 100 ) {
@@ -52,8 +53,7 @@ function fooBarQuix ( numero ) {
     if (numero % 7 == 0) { strReturn += "Quix"; }
 
     // lo convertimos a cadena para mirar los elementos
-    let strNumero = numero.toString(); 
-    let element;
+    strNumero = numero.toString(); 
     for (let i = 0; i < strNumero.length; i++) {
         element = strNumero.charAt(i);
     

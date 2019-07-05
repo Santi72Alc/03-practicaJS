@@ -1,0 +1,11 @@
+{
+  "name": "practicajs",
+  "version": "1.0.0",
+  "description": "Práctica JS básico",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Santiaga San Román",
+  "license": "ISC"
+}

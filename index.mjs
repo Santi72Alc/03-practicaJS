@@ -2,6 +2,7 @@
 // importamos las katas
 
 import { main as kata1 } from './kata1.mjs';
+import { main as kata2 } from './kata2.mjs';
 
 
 // Las pruebas se hacen importando los 'main' de los archivos kata?.jms
@@ -10,6 +11,7 @@ import { main as kata1 } from './kata1.mjs';
 
 function main () {
     kata1();
+    kata2();
 }
 
 

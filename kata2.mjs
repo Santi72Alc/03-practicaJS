@@ -261,4 +261,4 @@ export function main() {
 
 
 // Si deseamos probar directament esta KATA, debemos quitar el comentario de la línea de abajo
-main();
+// main();

@@ -43,7 +43,7 @@ function fooBarQuix( numero ) {
     let strReturn = "";
 
     if (typeof numero != "number"  || numero < 1 || numero > 100 ) {
-        console.log ("ERROR!! Entrada: [ " + numero + " ]. SÓLO válidos valores entre 1 y 100")
+        console.log (`ERROR!! Entrada: [ ${numero} ]. SÓLO válidos valores entre 1 y 100`)
         return;
     }
 
@@ -88,6 +88,7 @@ export function main () {
 
     fooBarQuix(13);
     fooBarQuix(15);
+    fooBarQuix(21);
     fooBarQuix(51);
     fooBarQuix(53);
     fooBarQuix(75);

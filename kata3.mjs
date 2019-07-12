@@ -566,7 +566,6 @@ class Game {
             }
         }
 
-        console.log(winDescription[1]);
         txtResult = (winCode == 0) ? "Hay un empate" : `El ganador es ${winnerName} con ${winDescription[winCode.toString()]}`;
         console.log(txtResult);
 
@@ -596,8 +595,8 @@ class Game {
 
 export function main() {
     let game = new Game(  
-        ["Santi",       ['2h', '3h', '4h', '5h', '6H']],
-        ["Machine",     ['2c', '2s', '3d', '5D', '5S']]
+        ["Santi",       ['2h', '4s', '4c', '2d', '4H']],
+        ["Machine",     ['2s', '8s', 'As', 'Qs', '2s']]
         );
 
     game.play();

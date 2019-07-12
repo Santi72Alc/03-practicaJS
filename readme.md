@@ -1,3 +1,9 @@
+# Ejercicios básicos de Javascript
+
+
+*Autor: Santiago San Román (2019 - Julio)*
+
+---
 # KATAS
 
 ## Primera Kata

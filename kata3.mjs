@@ -141,18 +141,17 @@ class Carta {
     constructor( code = "" ) {
 
         // propiedades
-        let resp = this.readCode( code );
+        let resp = (code == "") ? [0,""] : this.readCode( code );
         this.value = resp[0];
         this.suit = resp[1];
-        this.code = this.makeCode();    // creamos el código de la carta
+        this.code = this.makeCode( this.value, this.suit );    // creamos el código de la carta
     }
 
-
+    // Devuelve la descomposición del 'code' de la carta
+    // Return -> [ Value (int), suit (String)]
     readCode( code ) {
-        let value;
-        let suit;
-        suit = code.slice( 1 );
-        value = code.slice( 0, 1);
+        let value = code.slice( 0, 1);
+        let suit = code.slice( 1 );
 
         switch (value) {
             case "A": value = 14; break;
@@ -172,11 +171,13 @@ class Carta {
         return [parseInt(value), suit];
     }
 
+    // Codifica los valores de 'this.value' y 'this.suit' en formato para 'this.code'
+    // Return -> '{value}{suit}'
+    makeCode( myValue = 0, mySuit = "" ) {
+        let value = (myValue == 0) ? this.getRandomValue() : myValue;
+        let suit = (mySuit == "") ? this.getRandomSuit() : mySuit;
 
-    makeCode() {
-        let value = '';
-
-        switch (this.value.toString()) {
+        switch (value.toString()) {
             case "14": value = 'A'; break;
             case "13": value = 'K'; break;
             case "12": value = 'Q'; break;
@@ -191,28 +192,25 @@ class Carta {
             case "3": value = "3"; break;
             case "2": value = "2"; break;
         }
-        return `${value}${this.suit}`;
+        return `${value}${suit}`;
     }
 
+    // // Devuelve el 'suit' que tenga la carta
+    // getSuit(suit = this.suit) {
+    //     if (suit != "" && suit in suitNames) {
+    //         this.suit = suit;
+    //     }
+    //     return this.suit;
+    // }
 
-
-    // métodos
-    // devuelve el 'suit - palo' que tenga la carta
-    getSuit(suit = this.suit) {
-        if (suit != "" && suit in suitNames) {
-            this.suit = suit;
-        }
-        return this.suit;
-    }
-
-    // Devuelve el valor que tenga la carta
-    getValue(value = "") {
-        if (value != "" && value in codeValues) {
-            value = codeValues[value].toString();
-        }
-        else { value = ""; }
-        return value;
-    }
+    // // Devuelve el 'value' que tenga la carta
+    // getValue(value = "") {
+    //     if (value != "" && value in codeValues) {
+    //         value = codeValues[value].toString();
+    //     }
+    //     else { value = ""; }
+    //     return value;
+    // }
 
     // Buscamos un valor aletario para 'suit - palo'
     getRandomSuit() {
@@ -263,20 +261,10 @@ class Baraja {
         return baraja;
     }
 
-    existCarta( code ) {
-        let exist = false;
-        this.values.forEach(element => {
-            if (element.code == code) {
-                exist = true;
-            }
-        });
-        return exist;
-    }
-
-    // Devuelve una carta aleatoria de las 52 existentes
-    getRandomValue() {
-        return this.values[Math.floor(Math.random() * this.values.length - 1)];
-    }
+    // // Devuelve una carta aleatoria de las 52 existentes
+    // getRandomValue() {
+    //     return this.values[Math.floor(Math.random() * this.values.length - 1)];
+    // }
 }
 /* FIN declaración de class Baraja ********************************************* */
 
@@ -284,58 +272,82 @@ class Baraja {
 class Jugador  {
     // El jugador consta de [ 'nombre' , [array 5 cartas] ]. Si no se pasan las cartas, se cogen aleatorias
     constructor(jugador = ["Jugador", []]) {
-        // super( (typeof jugador[1] == 'array' && jugador[1].length == 5) ? jugador[1] : [] );              // Inicializamos jugador con la mano en blanco (sin cartas)
-
         this.name = (typeof jugador[0] != 'string' || jugador[0] == "") ? "Jugador" : jugador[0];
         // Mano del jugador (5 cartas diferentes de la baraja)
         this.hand = [];         // Mano del jugador (5 cartas)
         this.totalHand = 0;     // Total de puntos del jugador en la mano actual
         this.totalTrio = 0;     // Total de puntos del trio (si existe en la mano actual, sino será 0)
+        this.highestCard = 0;   // Valor de la carta más alta
+        this.awards = [];       // Premios obtenidos en la mano [ 9, 8, ... 0 ] 9=Escalera Color, 8=Poker, etc...
 
-        (typeof jugador[1] == 'object' && jugador[1].length == 5) ? this.fillHand(jugador[1]) : this.fillHand([]);  
+        (typeof jugador[1] == 'object' && jugador[1].length == 5) ? this.fillHand(jugador[1]) : this.fillHand([]);
 
+        this.fillAwards();      // Rellenamos los datos de los premios de la mano
     }
 
     // Rellenamos la mano del jugador con 5 cartas definidas o aleatorias()
     fillHand( hand = [] ) {
+        let element;
         let carta;
+        let highestCard = 0;
         let exist = false;
-        let objHand = [];
 
-        if (hand != []) {       // Cada elemento del array pasado, lo convertimos a class 'Carta'
-            hand.forEach( element => {
-                carta = new Carta(element.toUpperCase());
-                objHand.push(carta);
-            });
-        }
-
-        for (let i = 0; this.hand.length < 5; i++) {        // SIEMPRE leemos/creamos 5 cartas para la mano
+        console.log(`Asignando cartas al jugador : ${this.name}`);
+        for (let i=0; this.hand.length < 5; i++) {
             exist = false;
-
-            // Miramos si existe en las cartas ya guardados
-            objHand.forEach( carta => {
-                usedValues.forEach( element => { 
-                    if (element.code == carta.code) { exist = true; }
+            if (hand[i] != "") {
+                element = hand[i].toUpperCase()
+                usedValues.forEach( used => {       // Comprobamos las cartas 'usadas'
+                    if (element == used.code) { exist = true; }     // Carta utilizada por un jugador
                 });
-                if (!exist) {   // La carta NO está usada... la añadimos en su mano y en 'usadas'
-                    this.hand.push(carta); 
-                    usedValues.push(carta);
-                } 
-                else { objHand.push(new Carta()); }       // Añadimos una aleatoria ???
-            });
+            }
+            else { exist = true };
+            if (exist) {        // ESTÁ utilizada la carta - Generamos una aleatoria
+                console.log("Error en carta. Generando carta 'aleatoria'...");
+                carta = new Carta("");
+                hand.push( carta.code );
+                console.log(`Carta aleatoria generada... ${carta.code}`);
+            }
+            else {
+                carta = new Carta(element);
+                usedValues.push(carta);
+                this.hand.push(carta);
+            }
+            if (this.hand.length == 5) {      // Tenemos todas las cartas (5) de la mano
+                console.log(`Terminada la asignación al jugador : ${this.name}`);
+            }
         }
+
         this.sortHand();    // Ordenamos la mano del jugador
         this.totalHand = 0;
         this.hand.forEach( element => {     // Calculamos el total de la mano del jugador
             this.totalHand += parseInt(element.value);
+            this.highestCard = (element.value > this.highestCard) ? element.value : this.highestCard;
         }); 
     }
 
-    // Ordena la mano del jugador
+    // Ordena la mano del jugador (carta mayor a menor)
     sortHand () {
         this.hand.sort( function( a, b ) {
-            return b.code.localeCompare( a.code );
+            // return b.code.localeCompare( a.code );
+            return a.value - b.value;
         });
+    }
+
+
+    // Miramos los premios obtenido en la mano y los guardamos en la propiedad 'awards'
+    fillAwards() {
+        this.awards = [];
+
+        if (this.isStraightFlush()) { this.awards.push(9); }
+        if (this.isFourOfAKind()) { this.awards.push(8); }
+        if (this.isFullHouse()) { this.awards.push(7); }
+        if (this.isFlush()) { this.awards.push(6); }
+        if (this.isStraight()) { this.awards.push(5); }
+        if (this.isTrio()) { this.awards.push(4); }
+        if (this.isDoublePair()) { this.awards.push(3); }
+        if (this.isPair()) { this.awards.push(2); }
+
     }
 
     // Visualiza los datos del jugador y su mano actual
@@ -346,8 +358,6 @@ class Jugador  {
             console.log(element.info());
         });
         console.log("");
-        // if ( this.isTrio() ) { console.log("Tiene trio"); };
-        // if ( this.isPair() ) { console.log("Tiene pareja"); };
     }
 
     // Devuelve el valor más alto de la mano
@@ -358,6 +368,31 @@ class Jugador  {
         });
         // return values[0];
         return  Math.max( ...values );
+    }
+
+
+    // Devuelve si tenemos EXACTAMENTE 2 valores iguales en la mano
+    isPair () {
+        let times = [];
+        let pos = 0;
+        this.hand.forEach( element => {
+            pos = element.value;
+            if ( times[ pos ] == undefined ) { times[ pos ] = 1 }
+            else { times[ pos ]++; }
+        });
+        return (times.includes(2));
+    }
+
+    // Devuelve si tenemos DOBLE PAREJA  ( 2 + 2 cartas de igual valor )
+    isDoublePair () {
+        let times = [];
+        let pos = 0;
+        this.hand.forEach( element => {
+            pos = element.value;
+            if ( times[ pos ] == undefined ) { times[ pos ] = 1 }
+            else { times[ pos ]++; }
+        });
+        return (times.filter( function(x) { return x==2; }).length == 2);
     }
 
     // Devuelve si tenemos EXACTAMENTE 3 valores iguales en la mano
@@ -374,21 +409,8 @@ class Jugador  {
         return (pos != -1);
     }
 
-
-    // Devuelve si tenemos EXACTAMENTE 2 valores iguales en la mano
-    isPair () {
-        let times = [];
-        let pos = 0;
-        this.hand.forEach( element => {
-            pos = element.value;
-            if ( times[ pos ] == undefined ) { times[ pos ] = 1 }
-            else { times[ pos ]++; }
-        });
-        return times.includes(2);
-    }
-
-    // Devuelve si el jugador tiene 'Stright_Flush' / 'Escalera de Color'
-    isStraightFlush () {
+    // Devuelve si el jugador tiene 'Stright' / 'Escalera' (5 cartas consecutivas)
+    isStraight () {
         let isStraight = true;
         let oldSuit = "";
         let min;
@@ -399,7 +421,6 @@ class Jugador  {
                 oldSuit = element.suit;
                 min = max = element.value;
             }
-            else if ( element.suit != oldSuit || !isStraight ) { isStraight = false; }     // NO es del mismo palo
             else {
                 if (element.value == min - 1) { min = element.value; }
                 else if (element.value == max + 1) { max = element.value; }
@@ -409,25 +430,60 @@ class Jugador  {
         return isStraight;
     }
 
-    // Devuelve si el jugador tiene un 'poker' (4 cartas de igual valor)
-    isFourOfAKind () {
-        let isFour = true;
+
+
+    // Devuelve si el jugador tiene un 'Color' (5 cartas de igual 'suit/palo')
+    isFlush () {
+        let isFlush = true;
         let oldValor = 0;
         let cont = 0;
         this.hand.forEach( element => {
-            if (cont == 0) { oldValor = element.value }         // Cogemos el 1er valor
-            else if (element.value != oldValor ) { cont++; }
-            if (cont > 2) { isFour = false; }       // Más de 2 cartas diferentes NO puede haber poker
+            if (cont == 0) { oldValor = element.suit; cont = 1; }         // Cogemos el 1er valor
+            else if (element.suit == oldValor) { cont++; }
         });
-        return isFour;
+        return (cont==5);
     }
 
-    // La mano contiene un trío (3 cartas iguales) y una pareja (2 cartas iguales)
+      // La mano contiene un trío (3 cartas iguales) y una pareja (2 cartas iguales)
     isFullHouse () {
         return ( this.isTrio() && this.isPair() );
     }
 
 
+    // Devuelve si el jugador tiene un 'poker' (4 cartas de igual valor)
+    isFourOfAKind() {
+        let isFour = true;
+        let oldValor = 0;
+        let cont = 0;
+        this.hand.forEach( element => {
+            if (cont == 0) { oldValor = element.value; cont = 1; }         // Cogemos el 1er valor
+            else if (element.value != oldValor ) { cont++; }
+            if (cont > 2) { isFour = false; }       // Más de 2 cartas diferentes NO puede haber poker
+        });
+        return (isFour);
+    }
+
+    // Devuelve si el jugador tiene 'Stright_Flush' / 'Escalera de Color'
+    isStraightFlush () {
+        let isStraightFlush = true;
+        let oldSuit = "";
+        let min;
+        let max;
+
+        this.hand.forEach( element => {
+            if (oldSuit == "") {        // El primer elemento
+                oldSuit = element.suit;
+                min = max = element.value;
+            }
+            else if ( element.suit != oldSuit || !isStraightFlush ) { isStraightFlush = false; }     // NO es del mismo palo
+            else {
+                if (element.value == min - 1) { min = element.value; }
+                else if (element.value == max + 1) { max = element.value; }
+                else { isStraightFlush = false; }    // NO es valor consecutivo
+            }
+        });
+        return isStraightFlush;
+    }
 
 
 }
@@ -437,22 +493,87 @@ class Jugador  {
 
 
 class Game {
-    constructor (player1 = ["Jugador 1", []], player2 = ["Jugador 2", []]) {
-        fullBaraja = new Baraja();
-        this.jugador1 = new Jugador(player1);
-        this.jugador2 = new Jugador(player2);
-    }
+    constructor (   player1 = ["Jugador 1", []], 
+                    player2 = ["Jugador 2", []]
+                ) {
+        fullBaraja = new Baraja();              // Creamos la baraja (NO se usa)
 
-    play () {
-
+        console.clear();
         console.log("\n***********************************");
         console.log("Kata 3 - Juego de poker ---- \n");
 
-        this.jugador1.showHand();
+        this.jugador1 = new Jugador(player1);   // Creamos al 1er jugador
+        this.jugador2 = new Jugador(player2);   // Creamos al 2do jugador
+    }
 
-        this.jugador2.showHand();
 
-        // usedValues.forEach( element => { console.log( element.data() )});
+
+    play () {
+
+
+        console.log("\n==> Comenzamos... \n");
+        this.jugador1.showHand();       // Mostramos datos del 1er jugador
+        this.jugador2.showHand();       // Mostramos datos del 2do jugador
+
+        this.showResult();              // Mostramos los resultados de la jugada
+
+    }
+
+    showResult() {
+        const txtEmpate = "* EMPATE *";
+        let ply1MaxValue = this.jugador1.highestHandValue();
+        let ply2MaxValue = this.jugador2.highestHandValue();
+        let maxValue = ( ply1MaxValue > ply2MaxValue) ? [this.jugador1.name, ply1MaxValue] : 
+                (ply2MaxValue > ply1MaxValue) ? [this.jugador2.name, ply2MaxValue] : [txtEmpate, ply1MaxValue];
+            
+        console.log("\n***********************************");
+        console.log("Resultado ... \n");
+
+        this.ctrlGame();
+    }
+
+
+    ctrlGame() {
+        let winDescription = { 9: "Escalera de color", 8: "Póker", 7: "Full", 6: "Color", 
+             5: "Escalera", 4: "Trío", 3: "Doble pareja", 2: "Pareja", 1: "Carta más alta"};
+        let winCode = 1;
+        let winnerName = "";
+
+        let maxAwardPlayer1 = Math.max(...this.jugador1.awards);
+        let maxAwardPlayer2 = Math.max(...this.jugador2.awards);
+        let txtResult = ``;
+
+
+        if ( maxAwardPlayer1 > maxAwardPlayer2 ) { 
+            winCode = maxAwardPlayer1;
+            winnerName = this.jugador1.name;
+        }
+        else if ( maxAwardPlayer2 > maxAwardPlayer1 ) {
+            winCode = maxAwardPlayer2;
+            winnerName = this.jugador1.name;
+        }
+        else if ( maxAwardPlayer1 == maxAwardPlayer2 ) {
+            if (this.jugador1.highestCard > this.jugador2.highestCard) {
+                winCode = 1;
+                winnerName = this.jugador1.name;
+            }
+            else if ( this.jugador2.highestCard > this.jugador1.highestCard) {
+                winCode = 1;
+                winnerName = this.jugador2.name;
+            }
+            else {
+                winCode = 0;
+            }
+        }
+
+        console.log(winDescription[1]);
+        txtResult = (winCode == 0) ? "Hay un empate" : `El ganador es ${winnerName} con ${winDescription[winCode.toString()]}`;
+        console.log(txtResult);
+
+        // console.log("Jugador 1 : ", this.jugador1.awards);
+        // console.log("Jugador 2 : ", this.jugador2.awards);
+        // console.log(this.jugador1.totalTrio);
+        // console.log(this.jugador2.totalTrio);
     }
 
 }
@@ -474,14 +595,14 @@ class Game {
 
 
 export function main() {
-    let game = new Game(
-        ["Santi",       ['2H', '3D', '5S', '9C', 'KD']],
-        ["Machine",     ['2c', '3H', '4S', '8C', 'AH']]
+    let game = new Game(  
+        ["Santi",       ['2h', '3h', '4h', '5h', '6H']],
+        ["Machine",     ['2c', '2s', '3d', '5D', '5S']]
         );
 
     game.play();
 
-
+    console.log("\n*** Fin ejecución Kata 3\n");
 }
 
 // Si deseamos probar directament esta KATA, debemos quitar el comentario de la línea de abajo

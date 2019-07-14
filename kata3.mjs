@@ -592,9 +592,15 @@ class Game {
 // }
 
 
-
+// Función principal de la kata
+// Entrada ->   [ "<nombreJugador1>", ["<codCarta>", ... *5 ]],
+//              [ "<nombreJugador2>", ["<codCarta>", ... *5 ]]
+// Cualquier valor (nombre o codCarta omitido en los parámetros, se cogerá por defecto)
+// si se deja en blanco o existen dos codCartas iguales, se cogerá una aleatoria.
 export function main() {
+
     let game = new Game(  
+        // Jugada de ejemplo
         ["Santi",       ['2h', '4s', '4c', '2d', '4H']],
         ["Machine",     ['2s', '8s', 'As', 'Qs', '2s']]
         );

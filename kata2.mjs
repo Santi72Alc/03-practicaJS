@@ -226,7 +226,7 @@ function romanToArabic ( str ) {
 
 export function main() {
     let pruebaArabic = [ 4, 10, 56, 14, 0, 39, 1785];
-    let pruebaRomanic = [ "XVII", "v", "VLX", "XLVII" ];
+    let pruebaRomanic = [ "XVII", "v", "VLX", "XLVII", "MXL" ];
 
     console.log("KATA2 --> Comenzamos pruebas!!");
     

@@ -11,9 +11,13 @@ import { main as kata3 } from './kata3.mjs';
 // archivos kata? y dentro de la función 'main'
 
 function main () {
+
+    // quitar el comentario de la kata a probar
+    // Se debe ejecutar con -->  node --experimental-modules index.mjs
+    
     // kata1();
-    // kata2();
-    kata3();
+    kata2();
+    // kata3();
 }
 
 

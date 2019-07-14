@@ -4,8 +4,11 @@
 *Autor: Santiago San Román (2019 - Julio)*
 
 NOTAS de uso:
-En el fichero **index.jms** hay que marcar/desmarcar en la función *main* las katas que deseemos visualizar.
+Cada función '**main**' en el fichero *kata?.mjs* tiene su explicación
+En la función '**main**' del fichero *index.jms* se hacen todas las pruebas de las katas.
 
+Para ejecutar la comprobación de las katas es con 
+--> node --experimental-modules index.mjs
 
 
 ---
